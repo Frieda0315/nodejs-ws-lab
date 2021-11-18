@@ -199,37 +199,37 @@ class GameScene extends Phaser.Scene {
         moving = true;
       }
 
-      if (this.player) {
+      if (player) {
         let moving = false;
         if (this.leftKey && this.leftKey.isDown) {
-          (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(
+          (player.body as Phaser.Physics.Arcade.Body).setVelocityX(
             -this.VELOCITY
           );
-          this.player.play("left", true);
+          player.play("left", true);
           moving = true;
         } else if (this.rightKey && this.rightKey.isDown) {
-          (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(
+          (player.body as Phaser.Physics.Arcade.Body).setVelocityX(
             this.VELOCITY
           );
-          this.player.play("right", true);
+          player.play("right", true);
           moving = true;
         } else {
-          (this.player.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
+          (player.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
         }
         if (this.upKey && this.upKey.isDown) {
-          (this.player.body as Phaser.Physics.Arcade.Body).setVelocityY(
+          (player.body as Phaser.Physics.Arcade.Body).setVelocityY(
             -this.VELOCITY
           );
-          this.player.play("up", true);
+          player.play("up", true);
           moving = true;
         } else if (this.downKey && this.downKey.isDown) {
-          (this.player.body as Phaser.Physics.Arcade.Body).setVelocityY(
+          (player.body as Phaser.Physics.Arcade.Body).setVelocityY(
             this.VELOCITY
           );
-          this.player.play("down", true);
+          player.play("down", true);
           moving = true;
         } else {
-          (this.player.body as Phaser.Physics.Arcade.Body).setVelocityY(0);
+          (player.body as Phaser.Physics.Arcade.Body).setVelocityY(0);
         }
         if (!moving) {
           (player.body as Phaser.Physics.Arcade.Body).setVelocity(0);
@@ -244,7 +244,7 @@ class GameScene extends Phaser.Scene {
             })
           );
         }
-        this.player.update();
+        player.update();
       }
     }
   }
