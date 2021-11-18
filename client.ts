@@ -46,12 +46,11 @@ class GameScene extends Phaser.Scene {
 
   private VELOCITY = 100;
   private wsClient?: WebSocket;
-  private player?: Phaser.GameObjects.Sprite;
+  // private player?: Phaser.GameObjects.Sprite;
   private leftKey?: Phaser.Input.Keyboard.Key;
   private rightKey?: Phaser.Input.Keyboard.Key;
   private upKey?: Phaser.Input.Keyboard.Key;
   private downKey?: Phaser.Input.Keyboard.Key;
-
   private id = uuid();
   private players: { [key: string]: Phaser.GameObjects.Sprite } = {};
 
@@ -79,9 +78,6 @@ class GameScene extends Phaser.Scene {
     this.wsClient = new WebSocket(`ws://${this.HOST}:${this.PORT}`);
     this.wsClient.onopen = (event) => console.log(event);
     // TODO: multiplayer functionality
-    // this.wsClient.onmessage = (wsMsgEvent) => {
-    //   console.log(wsMsgEvent);
-    // };
     this.wsClient.onmessage = (wsMsgEvent) => {
       const allCoords: ICoords = JSON.parse(wsMsgEvent.data);
       for (const playerId of Object.keys(allCoords)) {
@@ -150,9 +146,9 @@ class GameScene extends Phaser.Scene {
     });
 
     // Player game object
-    this.player = this.physics.add.sprite(48, 48, "player", 1);
-    this.physics.add.collider(this.player, layer);
-    this.cameras.main.startFollow(this.player);
+    this.players[this.id] = this.physics.add.sprite(48, 48, "player", 1);
+    this.physics.add.collider(this.players[this.id], layer);
+    this.cameras.main.startFollow(this.players[this.id]);
     this.cameras.main.setBounds(
       0,
       0,
@@ -171,10 +167,6 @@ class GameScene extends Phaser.Scene {
     this.downKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.DOWN
     );
-
-    this.players[this.id] = this.physics.add.sprite(48, 48, "player", 1);
-    this.physics.add.collider(this.players[this.id], layer);
-    this.cameras.main.startFollow(this.players[this.id]);
   }
 
   public update() {
@@ -191,61 +183,51 @@ class GameScene extends Phaser.Scene {
       const player = this.players[this.id];
       let moving = false;
 
+      if (!moving) {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocity(0);
+        player.anims.stop();
+      } else if (this.wsClient) {
+        this.wsClient.send(
+          JSON.stringify({
+            id: this.id,
+            x: player.x,
+            y: player.y,
+            frame: player.frame.name,
+          })
+        );
+      }
+
       if (this.leftKey && this.leftKey.isDown) {
         (player.body as Phaser.Physics.Arcade.Body).setVelocityX(
           -this.VELOCITY
         );
         player.play("left", true);
         moving = true;
+      } else if (this.rightKey && this.rightKey.isDown) {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocityX(this.VELOCITY);
+        player.play("right", true);
+        moving = true;
+      } else {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
       }
-
-      if (player) {
-        let moving = false;
-        if (this.leftKey && this.leftKey.isDown) {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocityX(
-            -this.VELOCITY
-          );
-          player.play("left", true);
-          moving = true;
-        } else if (this.rightKey && this.rightKey.isDown) {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocityX(
-            this.VELOCITY
-          );
-          player.play("right", true);
-          moving = true;
-        } else {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
-        }
-        if (this.upKey && this.upKey.isDown) {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocityY(
-            -this.VELOCITY
-          );
-          player.play("up", true);
-          moving = true;
-        } else if (this.downKey && this.downKey.isDown) {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocityY(
-            this.VELOCITY
-          );
-          player.play("down", true);
-          moving = true;
-        } else {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocityY(0);
-        }
-        if (!moving) {
-          (player.body as Phaser.Physics.Arcade.Body).setVelocity(0);
-          player.anims.stop();
-        } else if (this.wsClient) {
-          this.wsClient.send(
-            JSON.stringify({
-              id: this.id,
-              x: player.x,
-              y: player.y,
-              frame: player.frame.name,
-            })
-          );
-        }
-        player.update();
+      if (this.upKey && this.upKey.isDown) {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocityY(
+          -this.VELOCITY
+        );
+        player.play("up", true);
+        moving = true;
+      } else if (this.downKey && this.downKey.isDown) {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocityY(this.VELOCITY);
+        player.play("down", true);
+        moving = true;
+      } else {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocityY(0);
       }
+      if (!moving) {
+        (player.body as Phaser.Physics.Arcade.Body).setVelocity(0);
+        player.anims.stop();
+      }
+      player.update();
     }
   }
 }
